@@ -1,0 +1,69 @@
+// Handles POST /api/ai/answer
+// - Accepts: base64 image + question number (1–4)
+// - Checks: is user logged in OR guest with 0 prior uses?
+// - Checks: has user exceeded MAX_IMAGES_PER_DAY?
+// - Sends image to Gemini API with the hardcoded biochemistry prompt
+// - Returns: AI-generated text answer
+// - Logs: usage to UsageLog model
+
+import express from "express";
+import { authOrGuest } from "../Middleware/auth.js";
+import { checkDailyLimit } from "../middleware/guest.js";
+import UsageLog from "../models/usageLog.js";
+import fetch from "node-fetch";
+
+const router = express.Router();
+
+// The four fixed biochemistry prompts
+const BIOCHEM_PROMPTS = {
+  1: "You are a biochemistry professor. Analyze this image and answer: What biochemical structures or molecules are shown? Describe their function and significance.",
+  2: "You are a biochemistry professor. Analyze this image and answer: What metabolic pathway is illustrated? Explain each step shown.",
+  3: "You are a biochemistry professor. Analyze this image and answer: Identify the enzyme(s) or proteins shown. Describe their mechanism of action.",
+  4: "You are a biochemistry professor. Analyze this image and answer: What experimental technique or result is depicted? Interpret the findings."
+};
+
+router.post("/answer", authOrGuest, checkDailyLimit, async (req, res) => {
+  const { imageBase64, mimeType, questionNumber } = req.body;
+
+  if (!imageBase64 || !questionNumber || !BIOCHEM_PROMPTS[questionNumber]) {
+    return res.status(400).json({ error: "Missing image or invalid question number (1–4)." });
+  }
+
+  try {
+    const prompt = BIOCHEM_PROMPTS[questionNumber];
+
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: prompt },
+              { inline_data: { mime_type: mimeType || "image/jpeg", data: imageBase64 } }
+            ]
+          }]
+        })
+      }
+    );
+
+    const data = await geminiRes.json();
+    const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text || "No answer returned.";
+
+    // Log usage
+    await UsageLog.create({
+      userId: req.user?._id || null,
+      guestId: req.guestId || null,
+      questionNumber,
+      timestamp: new Date()
+    });
+
+    res.json({ answer });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "AI request failed." });
+  }
+});
+
+export default router;

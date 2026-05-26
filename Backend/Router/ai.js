@@ -1,10 +1,12 @@
-// Handles POST /api/ai/answer
-// - Accepts: base64 image + question number (1–4)
-// - Checks: is user logged in OR guest with 0 prior uses?
-// - Checks: has user exceeded MAX_IMAGES_PER_DAY?
-// - Sends image to Gemini API with the hardcoded biochemistry prompt
-// - Returns: AI-generated text answer
-// - Logs: usage to UsageLog model
+/*
+Handles POST /api/ai/answer
+- Accepts: base64 image + question number (1–4)
+- Checks: is user logged in OR guest with 0 prior uses?
+- Checks: has user exceeded MAX_IMAGES_PER_DAY?
+- Sends image to Gemini API with the hardcoded biochemistry prompt
+- Returns: AI-generated text answer
+- Logs: usage to UsageLog model
+*/
 
 import express from "express";
 import { authOrGuest } from "../Middleware/auth.js";
@@ -12,7 +14,7 @@ import { checkDailyLimit } from "../middleware/guest.js";
 import UsageLog from "../models/usageLog.js";
 import fetch from "node-fetch";
 
-const router = express.Router();
+const aiRouter = express.Router();
 
 // The four fixed biochemistry prompts
 const BIOCHEM_PROMPTS = {
@@ -22,7 +24,7 @@ const BIOCHEM_PROMPTS = {
   4: "You are a biochemistry professor. Analyze this image and answer: What experimental technique or result is depicted? Interpret the findings."
 };
 
-router.post("/answer", authOrGuest, checkDailyLimit, async (req, res) => {
+aiRouter.post("/answer", authOrGuest, checkDailyLimit, async (req, res) => {
   const { imageBase64, mimeType, questionNumber } = req.body;
 
   if (!imageBase64 || !questionNumber || !BIOCHEM_PROMPTS[questionNumber]) {
@@ -66,4 +68,4 @@ router.post("/answer", authOrGuest, checkDailyLimit, async (req, res) => {
   }
 });
 
-export default router;
+export default aiRouter;

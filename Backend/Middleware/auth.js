@@ -1,8 +1,10 @@
-// authOrGuest middleware
-// - If Authorization header with valid JWT → attaches req.user
-// - If no token → treats as guest, attaches req.guestId from body/cookie
-// - If neither → blocks request
+/* 
+authOrGuest middleware
+- If Authorization header with valid JWT → attaches req.user
+- If no token → treats as guest, attaches req.guestId from body/cookie
+- If neither → blocks request
 
+*/
 import jwt from "jsonwebtoken";
 
 export const authOrGuest = (req, res, next) => {

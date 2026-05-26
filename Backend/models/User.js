@@ -1,2 +1,12 @@
-// Fields: name, email, password (hashed), createdAt
-// Password should be hashed with bcrypt before saving (use pre-save hook)
+import mongoose from 'mongoose';
+
+const userSchema = await mongoose.Schema({
+    name: { type: String, required: true },
+    email: { type: String, required: true  },
+    password: { type: String, required: true },
+}, {timestamp: { type: Date, default: Date.now }
+})
+
+const User = mongoose.model('User', userSchema);
+
+export default User;

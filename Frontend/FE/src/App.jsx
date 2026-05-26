@@ -6,7 +6,7 @@ import LandingPage from "./pages/LandingPage.jsx";
 import { AuthContext } from "./context/authContext.jsx";
 
 export default function App() {
-  const [page, setPage] = useState("signup");
+  const [page, setPage] = useState("landing");
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [guestUsed, setGuestUsed] = useState(false);

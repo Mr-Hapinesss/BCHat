@@ -3,10 +3,10 @@ import { Router } from 'express';
 
 const authRouter = Router();
 
-authRouter.put('/sign-up', SignUp)
+authRouter.post('/sign-up', SignUp)
 
-authRouter.put('/sign-up', SignIn)
+authRouter.post('/sign-in', SignIn)
 
-authRouter.put('/sign-up', SignOut)
+authRouter.post('/sign-out', SignOut)
 
 export default authRouter

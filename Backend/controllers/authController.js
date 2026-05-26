@@ -2,14 +2,16 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import express from 'express';
 import router from 'express';
+import mongoose from 'mongoose';
+import User from '../models/User.js';
 
 
 
 export const SignUp = async(req, res, next) => {
     try {
         // create an Atomic session
-        const session = await mongoose.startSession;
-        session.startTransaction;
+        const session = await mongoose.startSession();
+        session.startTransaction();
 
         // fetch data from request body
         const {name, email, password} = req.body;
@@ -36,7 +38,7 @@ export const SignUp = async(req, res, next) => {
         session.endSession();
 
         // send a json response to client
-        res(201).json({
+        res.status(201).json({
             success: true,
             message: 'User created successfully',
             data: {
@@ -46,8 +48,7 @@ export const SignUp = async(req, res, next) => {
         })
 
     } catch (error) { // error handling
-        await session.abortTransaction();
-        session.endSession();
+
         next(error);
     }
 }
@@ -99,7 +100,7 @@ export const SignIn = async (req, res, next) => {
     }
 }
 
-export const SignOut = async () => {
+export const SignOut = async (req, res, next) => {
     try {
         // clear the cookie
         res.clearCookie('token', {path: '/'});

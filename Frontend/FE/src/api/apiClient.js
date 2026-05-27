@@ -1,4 +1,4 @@
-const BASE = "/api";
+const BASE = import.meta.env.VITE_API_BASE_URL;
 
 function toBase64(file) {
   return new Promise((res, rej) => {
@@ -22,14 +22,14 @@ export async function submitQuestion(imageFile, questionNumber, token) {
   if (token) { headers["Authorization"] = `Bearer ${token}`; }
   else { body.guestId = getOrCreateGuestId(); }
 
-  const res = await fetch(`${BASE}/ai/answer`, { method: "POST", headers, body: JSON.stringify(body) });
+  const res = await fetch(`${BASE}/api/v1/ai/answer`, { method: "POST", headers, body: JSON.stringify(body) });
   const data = await res.json();
   if (!res.ok) throw Object.assign(new Error(data.error || "Request failed"), { requiresAuth: data.requiresAuth, status: res.status });
   return data;
 }
 
 export async function loginUser(email, password) {
-  const res = await fetch(`${BASE}/auth/login`, {
+  const res = await fetch(`${BASE}/api/v1/auth/sign-in`, {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
@@ -39,7 +39,7 @@ export async function loginUser(email, password) {
 }
 
 export async function registerUser(name, email, password) {
-  const res = await fetch(`${BASE}/auth/register`, {
+  const res = await fetch(`${BASE}/api/v1/auth/sign-up`, {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name, email, password }),
   });

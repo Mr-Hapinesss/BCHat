@@ -24,7 +24,7 @@
 
 ## Overview
 
-BioChem Vision lets students and researchers upload biochemistry images — molecular structures, metabolic pathway diagrams, lab results, microscopy images — and receive detailed AI-powered written explanations. The analysis is driven by Google's Gemini 2.0 Flash model (multimodal), which processes each image through one of four expert biochemistry prompts.
+BioChem Vision lets students and researchers upload biochemistry images and receive detailed AI-powered written explanations. The analysis is driven by Google's Gemini 2.0 Flash model (multimodal), which processes each image through one of four expert biochemistry prompts.
 
 Users can try the platform once as a guest. After that, they must create a free account, which unlocks up to 10 image analyses per day.
 
@@ -36,7 +36,7 @@ Users can try the platform once as a guest. After that, they must create a free 
 - **Four expert question types** — structure identification, metabolic pathways, enzyme analysis, experimental interpretation
 - **AI vision analysis** — Google Gemini 2.0 Flash processes images and returns written academic answers
 - **Guest access** — one free analysis without an account
-- **Daily usage limits** — registered users get 10 analyses per day; resets at midnight
+- **Daily usage limits** — registered users get 5 analyses per day; resets at midnight
 - **JWT authentication** — secure login and session management
 - **Usage tracking** — per-user and per-guest usage logged in MongoDB
 - **Responsive UI** — works on desktop and mobile

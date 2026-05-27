@@ -1,13 +1,3 @@
-/*
-Handles POST /api/ai/answer
-- Accepts: base64 image + question number (1–4)
-- Checks: is user logged in OR guest with 0 prior uses?
-- Checks: has user exceeded MAX_IMAGES_PER_DAY?
-- Sends image to Gemini API with the hardcoded biochemistry prompt
-- Returns: AI-generated text answer
-- Logs: usage to UsageLog model
-*/
-
 import express from "express";
 import { authOrGuest } from "../Middleware/auth.js";
 import { checkDailyLimit } from "../middleware/guest.js";
@@ -16,7 +6,6 @@ import fetch from "node-fetch";
 
 const aiRouter = express.Router();
 
-// The four fixed biochemistry prompts
 const BIOCHEM_PROMPTS = {
   1: "You are a biochemistry professor. Analyze this image and answer: What biochemical structures or molecules are shown? Describe their function and significance.",
   2: "You are a biochemistry professor. Analyze this image and answer: What metabolic pathway is illustrated? Explain each step shown.",
@@ -28,7 +17,9 @@ aiRouter.post("/answer", authOrGuest, checkDailyLimit, async (req, res) => {
   const { imageBase64, mimeType, questionNumber } = req.body;
 
   if (!imageBase64 || !questionNumber || !BIOCHEM_PROMPTS[questionNumber]) {
-    return res.status(400).json({ error: "Missing image or invalid question number (1–4)." });
+    return res.status(400).json({
+      error: "Missing image or invalid question number (1–4)."
+    });
   }
 
   try {
@@ -40,20 +31,39 @@ aiRouter.post("/answer", authOrGuest, checkDailyLimit, async (req, res) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contents: [{
-            parts: [
-              { text: prompt },
-              { inline_data: { mime_type: mimeType || "image/jpeg", data: imageBase64 } }
-            ]
-          }]
+          contents: [
+            {
+              parts: [
+                { text: prompt },
+                {
+                  inline_data: {
+                    mime_type: mimeType || "image/jpeg",
+                    data: imageBase64
+                  }
+                }
+              ]
+            }
+          ]
         })
       }
     );
 
     const data = await geminiRes.json();
-    const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text || "No answer returned.";
 
-    // Log usage
+    if (!geminiRes.ok) {
+      return res.status(geminiRes.status).json({
+        error: data?.error?.message || "AI request failed.",
+        details: data?.error
+      });
+    }
+
+    const answer =
+      data?.candidates?.[0]?.content?.[0]?.text ||
+      data?.candidates?.[0]?.content?.find((part) => typeof part.text === "string")?.text ||
+      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      data?.candidates?.[0]?.output ||
+      "No answer returned.";
+
     await UsageLog.create({
       userId: req.user?._id || null,
       guestId: req.guestId || null,

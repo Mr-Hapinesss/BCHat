@@ -1,8 +1,9 @@
-// Schema fields:
-// - userId: ObjectId (null for guests)
-// - guestId: String (null for logged-in users)
-// - questionNumber: Number (1–4)
-// - timestamp: Date
+/** Usage Log Schema
+ - userId: ObjectId (null for guests)
+ - guestId: String (null for logged-in users)
+ - questionNumber: Number (1–4)
+ - timestamp: Date
+ */
 
 import mongoose from "mongoose";
 

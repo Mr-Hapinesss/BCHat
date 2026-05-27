@@ -7,5 +7,7 @@ export const useAuth = () => {
   if (context === null) {
     throw new Error("useAuth must be used within an AuthContext.Provider");
   }
+
   return context;
+  
 };

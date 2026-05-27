@@ -44,6 +44,7 @@ export const SignUp = async(req, res, next) => {
             data: {
                 token,
                 user: newUser[0],
+                email: newUser[1]
             }
         })
 
@@ -91,7 +92,8 @@ export const SignIn = async (req, res, next) => {
                 message: 'User logged in successfully',
                 data: {
                     token,
-                    user: user.name
+                    user: user.name,
+                    email: user.email
                 }
             })
 

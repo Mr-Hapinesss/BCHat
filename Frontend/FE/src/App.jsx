@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import LoginPage from "./pages/LogIn.jsx";
-import SignupPage from "./pages/SignUp.jsx";
-import QuizPage from "./pages/QuizPage.jsx";
-import LandingPage from "./pages/LandingPage.jsx";
-import { AuthContext } from "./context/authContext.jsx";
+import LoginPage from "./pages/LogIn";
+import SignupPage from "./pages/SignUp";
+import QuizPage from "./pages/QuizPage";
+import LandingPage from "./pages/LandingPage";
+import ProfilePage from "./pages/ProfilePage.jsx";
+import { AuthContext } from "./context/authContext";
 
 export default function App() {
   const [page, setPage] = useState("landing");
@@ -15,21 +16,36 @@ export default function App() {
     const storedToken = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
     const storedGuestUsed = localStorage.getItem("guestUsed");
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-      setPage("quiz");
+
+    if (storedUser && storedUser !== "undefined") {
+      try {
+        const parsed = JSON.parse(storedUser);
+        setUser(parsed);
+        // only set token if it's a valid non-"undefined" value
+        if (storedToken && storedToken !== "undefined") setToken(storedToken);
+        setPage("quiz");
+      } catch (error) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      }
     }
+
     if (storedGuestUsed === "true") setGuestUsed(true);
   }, []);
 
   const login = (userData, tokenData) => {
-    setUser(userData);
-    setToken(tokenData);
-    localStorage.setItem("token", tokenData);
-    localStorage.setItem("user", JSON.stringify(userData));
-    setPage("quiz");
+
+  const normalized = {
+    _id:   userData?._id   || userData?.user?._id   || null,
+    name:  userData?.name  || userData?.user?.name  || "",
+    email: userData?.email || userData?.user?.email || "",
   };
+  setUser(normalized);
+  setToken(tokenData);
+  localStorage.setItem("token", tokenData);
+  localStorage.setItem("user", JSON.stringify(normalized));
+  setPage("quiz");
+};
 
   const logout = () => {
     setUser(null);
@@ -40,11 +56,8 @@ export default function App() {
   };
 
   const enterAsGuest = () => {
-    if (guestUsed) {
-      setPage("login");
-    } else {
-      setPage("quiz");
-    }
+    if (guestUsed) setPage("login");
+    else setPage("quiz");
   };
 
   const markGuestUsed = () => {
@@ -52,8 +65,21 @@ export default function App() {
     localStorage.setItem("guestUsed", "true");
   };
 
+  const isAuthenticated = Boolean(user || token);
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, guestUsed, markGuestUsed, isAuthenticated: !!token }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        login,
+        logout,
+        guestUsed,
+        markGuestUsed,
+        isAuthenticated,
+        navigate: setPage,
+      }}
+    >
       {page === "landing" && (
         <LandingPage
           onLogin={() => setPage("login")}
@@ -77,7 +103,11 @@ export default function App() {
       {page === "quiz" && (
         <QuizPage
           onLoginRequired={() => setPage("login")}
+          onProfile={() => setPage("profile")}
         />
+      )}
+      {page === "profile" && (
+        <ProfilePage onBack={() => setPage("quiz")} />
       )}
     </AuthContext.Provider>
   );
